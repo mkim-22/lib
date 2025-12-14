@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QTableWidget,
     QTableWidgetItem, QPushButton, QTabWidget, QMessageBox
 )
-from database.db import get_connection
+from database.db import get_database_connection
 from datetime import date, timedelta
 
 class ClientWindow(QMainWindow):
@@ -41,7 +41,7 @@ class ClientWindow(QMainWindow):
         self.load_catalog_books()
 
     def load_catalog_books(self):
-        database_connection = get_connection()
+        database_connection = get_database_connection()
         with database_connection.cursor() as database_cursor:
             database_cursor.execute("""
                 SELECT b.id, b.title, a.full_name AS author, g.name AS genre
@@ -71,7 +71,7 @@ class ClientWindow(QMainWindow):
         start_date = date.today()
         end_date = start_date + timedelta(days=14)
 
-        database_connection = get_connection()
+        database_connection = get_database_connection()
         with database_connection.cursor() as database_cursor:
             database_cursor.execute("""
                 SELECT total_count -
@@ -108,7 +108,7 @@ class ClientWindow(QMainWindow):
         self.load_my_reservations()
 
     def load_my_reservations(self):
-        database_connection = get_connection()
+        database_connection = get_database_connection()
         with database_connection.cursor() as database_cursor:
             database_cursor.execute("""
                 SELECT b.title, r.date_start, r.date_end, r.status
