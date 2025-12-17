@@ -44,6 +44,12 @@ class AdminWindow(QMainWindow):
         btn_delete = QPushButton("Удалить выбранное")
         btn_delete.clicked.connect(self.delete_selected)
 
+        self.add_button = QPushButton("Добавить")
+        self.edit_button = QPushButton("Редактировать")
+
+        self.add_button.clicked.connect(self.open_add)
+        self.edit_button.clicked.connect(self.open_edit)
+
         # Layout
         layout = QVBoxLayout()
         filter_layout = QHBoxLayout()
@@ -52,6 +58,8 @@ class AdminWindow(QMainWindow):
         filter_layout.addWidget(self.date_to)
         filter_layout.addWidget(btn_filter_date)
         filter_layout.addWidget(btn_show_all)
+        filter_layout.addWidget(self.add_button)
+        filter_layout.addWidget(self.edit_button)
         filter_layout.addWidget(btn_delete)
 
         layout.addLayout(filter_layout)
@@ -87,10 +95,30 @@ class AdminWindow(QMainWindow):
             self.populate_table(self.reservations)
 
     def filter_date(self):
-        from_date = self.date_from.date().toPython()
-        to_date = self.date_to.date().toPython()
+        from_date = self.date_from.date().toPyDate()
+        to_date = self.date_to.date().toPyDate()
+
         self.reservations = get_reservations_by_date_range(from_date, to_date)
         self.populate_table(self.reservations)
+
+    def open_add(self):
+        from widgets.add_booking import AddReservationDialog
+        dialog = AddReservationDialog()
+        if dialog.exec():
+            self.load_data()
+
+    def open_edit(self):
+        row = self.table.currentRow()
+        if row == -1:
+            QMessageBox.warning(self, "Ошибка", "Выберите запись")
+            return
+
+        reservation_id = int(self.table.item(row, 0).text())
+
+        from widgets.edit_booking import EditReservationDialog
+        dialog = EditReservationDialog(reservation_id)
+        if dialog.exec():
+            self.load_data()
 
     def delete_selected(self):
         row = self.table.currentRow()

@@ -100,6 +100,25 @@ def get_all_books():
     finally:
         db.close()
 
+# =====================================================
+# ПОЛУЧИТЬ ВСЕХ КЛИЕНТОВ (АДМИН)
+# =====================================================
+def get_all_clients():
+    db = get_database_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT u.id, u.full_name
+                FROM users u
+                JOIN roles r ON u.role_id = r.id
+                WHERE r.name = 'client'
+            """)
+            return cursor.fetchall()
+    finally:
+        db.close()
+
+
+
 
 def check_book_availability(book_id):
     db = get_database_connection()
@@ -169,6 +188,7 @@ def get_all_reservations():
                 JOIN books b ON r.book_id = b.id
                 JOIN authors a ON b.author_id = a.id
                 JOIN genres g ON b.genre_id = g.id
+                order by id
             """)
             return cursor.fetchall()
     finally:
@@ -219,6 +239,25 @@ def get_reservations_by_date_range(date_from, date_to):
             return cursor.fetchall()
     finally:
         db.close()
+
+
+def get_reservation_by_id(reservation_id):
+    db = get_database_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    id,
+                    date_start,
+                    date_end,
+                    status
+                FROM reservations
+                WHERE id = %s
+            """, (reservation_id,))
+            return cursor.fetchone()
+    finally:
+        db.close()
+
 
 
 # ---------------------------------------------------
