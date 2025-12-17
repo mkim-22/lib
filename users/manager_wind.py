@@ -4,6 +4,7 @@ from database.db import get_library_statistics
 from PyQt6.QtWidgets import QPushButton, QDateEdit, QFileDialog, QMessageBox
 from PyQt6.QtCore import QDate
 from datetime import datetime
+from datetime import timedelta
 from database.db import get_statistics_by_period
 
 
@@ -57,15 +58,27 @@ class ManagerWindow(QMainWindow):
 
         stats = get_statistics_by_period(date_from, date_to)
 
-        self.period_stats = stats  # сохраним для отчёта
+        # защита от None
+        for key in ["issued", "reserved", "returned"]:
+            if stats[key] is None:
+                stats[key] = 0
+
+        days = (date_to - date_from).days + 1
+        avg_per_day = round(stats["total"] / days, 2) if days > 0 else 0
+
+        self.period_stats = stats
+        self.period_stats["avg"] = avg_per_day
+        self.period_stats["days"] = days
 
         QMessageBox.information(
             self,
             "Статистика за период",
+            f"Период: {days} дней\n\n"
             f"Всего операций: {stats['total']}\n"
             f"Выдано: {stats['issued']}\n"
             f"Забронировано: {stats['reserved']}\n"
-            f"Возвращено: {stats['returned']}"
+            f"Возвращено: {stats['returned']}\n\n"
+            f"Среднее количество книг в день: {avg_per_day}"
         )
 
     def export_report(self):
@@ -93,6 +106,8 @@ class ManagerWindow(QMainWindow):
             file.write(f"Выдано книг: {stats['issued']}\n")
             file.write(f"Забронировано: {stats['reserved']}\n")
             file.write(f"Возвращено: {stats['returned']}\n")
+            file.write(f"Период (дней): {stats['days']}\n")
+            file.write(f"Среднее количество книг в день: {stats['avg']}\n")
 
         QMessageBox.information(self, "Успех", "Отчет сохранен")
 
