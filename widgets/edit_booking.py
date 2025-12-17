@@ -43,20 +43,14 @@ class EditReservationDialog(QDialog):
             self.reject()
             return
 
+        from PyQt6.QtCore import QDate
+
         self.date_start.setDate(
-            QDate(
-                data["date_start"].year,
-                data["date_start"].month,
-                data["date_start"].day
-            )
+            QDate.fromString(str(data["date_start"]), "yyyy-MM-dd")
         )
 
         self.date_end.setDate(
-            QDate(
-                data["date_end"].year,
-                data["date_end"].month,
-                data["date_end"].day
-            )
+            QDate.fromString(str(data["date_end"]), "yyyy-MM-dd")
         )
 
         self.status_box.setCurrentText(data["status"])

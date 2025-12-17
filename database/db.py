@@ -296,6 +296,38 @@ def update_reservation(reservation_id, date_start, date_end, status):
         db.close()
 
 
+# =====================================================
+# Поиск
+# =====================================================
+
+def search_reservations(text):
+    db = get_database_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT r.id,
+                       u.full_name AS client_name,
+                       b.title AS book_title,
+                       g.name AS genre,
+                       a.full_name AS author,
+                       r.date_start,
+                       r.date_end,
+                       r.status
+                FROM reservations r
+                JOIN users u ON r.user_id = u.id
+                JOIN books b ON r.book_id = b.id
+                JOIN authors a ON b.author_id = a.id
+                JOIN genres g ON b.genre_id = g.id
+                WHERE u.full_name LIKE %s
+                   OR b.title LIKE %s
+                   OR a.full_name LIKE %s
+            """, (f"%{text}%", f"%{text}%", f"%{text}%"))
+            return cursor.fetchall()
+    finally:
+        db.close()
+
+
+
 
 # =====================================================
 # СТАТИСТИКА (РУКОВОДИТЕЛЬ)
@@ -323,3 +355,23 @@ def get_library_statistics():
             }
     finally:
         db.close()
+
+
+def get_statistics_by_period(date_from, date_to):
+    db = get_database_connection()
+    try:
+        with db.cursor() as cursor:
+            cursor.execute("""
+                SELECT
+                    SUM(CASE WHEN status = 'Выдано' THEN 1 ELSE 0 END) AS issued,
+                    SUM(CASE WHEN status = 'Забронировано' THEN 1 ELSE 0 END) AS reserved,
+                    SUM(CASE WHEN status = 'Возвращено' THEN 1 ELSE 0 END) AS returned,
+                    COUNT(*) AS total
+                FROM reservations
+                WHERE date_start >= %s AND date_end <= %s
+            """, (date_from, date_to))
+
+            return cursor.fetchone()
+    finally:
+        db.close()
+

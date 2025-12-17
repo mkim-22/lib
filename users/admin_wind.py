@@ -2,13 +2,16 @@ from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QComboBox, QHBoxLayout, QMessageBox, QDateEdit
 )
+from PyQt6.QtWidgets import QLineEdit
+
 from PyQt6.QtCore import QDate
 from database.db import (
     get_all_reservations,
     get_reservations_by_status,
     get_reservations_by_date_range,
     delete_reservation,
-    update_reservation
+    update_reservation,
+    search_reservations
 )
 
 
@@ -23,6 +26,13 @@ class AdminWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(
             ["ID", "Клиент", "Книга", "Жанр", "Автор", "Дата выдачи", "Дата возврата", "Статус"]
         )
+
+        #Поиск
+        self.search_input = QLineEdit()
+        self.search_input.setPlaceholderText("Поиск: клиент / книга / автор")
+
+        btn_search = QPushButton("Найти")
+        btn_search.clicked.connect(self.search)
 
         # Кнопки фильтров
         self.status_combo = QComboBox()
@@ -62,6 +72,9 @@ class AdminWindow(QMainWindow):
         filter_layout.addWidget(self.edit_button)
         filter_layout.addWidget(btn_delete)
 
+        filter_layout.addWidget(self.search_input)
+        filter_layout.addWidget(btn_search)
+
         layout.addLayout(filter_layout)
         layout.addWidget(self.table)
 
@@ -99,6 +112,15 @@ class AdminWindow(QMainWindow):
         to_date = self.date_to.date().toPyDate()
 
         self.reservations = get_reservations_by_date_range(from_date, to_date)
+        self.populate_table(self.reservations)
+
+    def search(self):
+        text = self.search_input.text().strip()
+        if not text:
+            QMessageBox.warning(self, "Ошибка", "Введите текст для поиска")
+            return
+
+        self.reservations = search_reservations(text)
         self.populate_table(self.reservations)
 
     def open_add(self):
