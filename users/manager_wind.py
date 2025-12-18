@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QLabel, QHBoxLayout
 from database.db import get_library_statistics
 
 from PyQt6.QtWidgets import QPushButton, QDateEdit, QFileDialog, QMessageBox
@@ -33,6 +33,9 @@ class ManagerWindow(QMainWindow):
         self.export_button = QPushButton("Выгрузить отчет (TXT)")
         self.export_button.clicked.connect(self.export_report)
 
+        self.logout_button = QPushButton("Выйти")
+        self.logout_button.clicked.connect(self.logout)
+
         layout = QVBoxLayout()
         layout.addWidget(self.total_label)
         layout.addWidget(self.issued_label)
@@ -45,6 +48,13 @@ class ManagerWindow(QMainWindow):
         layout.addWidget(self.date_to)
         layout.addWidget(self.calc_button)
         layout.addWidget(self.export_button)
+
+        logout_layout = QHBoxLayout()
+        logout_layout.addStretch()
+        logout_layout.addWidget(self.logout_button)
+        logout_layout.addStretch()
+
+        layout.addLayout(logout_layout)
 
         container = QWidget()
         container.setLayout(layout)
@@ -117,3 +127,9 @@ class ManagerWindow(QMainWindow):
         self.issued_label.setText(f"Выдано книг: {stats['issued']}")
         self.free_label.setText(f"Свободные книги: {stats['free']}")
         self.active_label.setText(f"Активные бронирования: {stats['reserved']}")
+
+    def logout(self):
+        from auth.login_wind import LoginWindow
+        self.close()
+        self.login_window = LoginWindow()
+        self.login_window.show()

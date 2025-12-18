@@ -60,6 +60,11 @@ class AdminWindow(QMainWindow):
         self.add_button.clicked.connect(self.open_add)
         self.edit_button.clicked.connect(self.open_edit)
 
+        self.logout_button = QPushButton("Выйти")
+        self.logout_button.clicked.connect(self.logout)
+
+
+
         # Layout
         layout = QVBoxLayout()
         filter_layout = QHBoxLayout()
@@ -77,6 +82,13 @@ class AdminWindow(QMainWindow):
 
         layout.addLayout(filter_layout)
         layout.addWidget(self.table)
+
+        logout_layout = QHBoxLayout()
+        logout_layout.addStretch()
+        logout_layout.addWidget(self.logout_button)
+        logout_layout.addStretch()
+
+        layout.addLayout(logout_layout)
 
         container = QWidget()
         container.setLayout(layout)
@@ -153,3 +165,9 @@ class AdminWindow(QMainWindow):
             self.load_data()
         else:
             QMessageBox.warning(self, "Ошибка", "Не удалось удалить запись")
+
+    def logout(self):
+        from auth.login_wind import LoginWindow
+        self.close()
+        self.login_window = LoginWindow()
+        self.login_window.show()

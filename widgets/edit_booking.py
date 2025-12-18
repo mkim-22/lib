@@ -3,7 +3,12 @@ from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QLabel,
     QDateEdit, QComboBox, QPushButton, QMessageBox
 )
-from database.db import get_reservation_by_id, update_reservation
+from database.db import (
+    get_reservation_by_id,
+    update_reservation,
+    get_all_clients,
+    get_all_books
+)
 
 
 class EditReservationDialog(QDialog):
@@ -25,7 +30,16 @@ class EditReservationDialog(QDialog):
         self.save_button = QPushButton("Сохранить")
         self.save_button.clicked.connect(self.save)
 
+        self.client_box = QComboBox()
+        self.book_box = QComboBox()
+
         layout = QVBoxLayout(self)
+        layout.addWidget(QLabel("Клиент"))
+        layout.addWidget(self.client_box)
+
+        layout.addWidget(QLabel("Книга"))
+        layout.addWidget(self.book_box)
+
         layout.addWidget(QLabel("Дата начала"))
         layout.addWidget(self.date_start)
         layout.addWidget(QLabel("Дата конца"))
@@ -37,18 +51,27 @@ class EditReservationDialog(QDialog):
         self.load_data()
 
     def load_data(self):
-        data = get_reservation_by_id(self.reservation_id)
-        if not data:
-            QMessageBox.warning(self, "Ошибка", "Бронь не найдена")
-            self.reject()
-            return
+        # клиенты
+        for c in get_all_clients():
+            self.client_box.addItem(c["full_name"], c["id"])
 
-        from PyQt6.QtCore import QDate
+        # книги
+        for b in get_all_books():
+            self.book_box.addItem(b["title"], b["id"])
+
+        data = get_reservation_by_id(self.reservation_id)
+
+        # установить текущего клиента
+        index = self.client_box.findData(data["user_id"])
+        self.client_box.setCurrentIndex(index)
+
+        # установить текущую книгу
+        index = self.book_box.findData(data["book_id"])
+        self.book_box.setCurrentIndex(index)
 
         self.date_start.setDate(
             QDate.fromString(str(data["date_start"]), "yyyy-MM-dd")
         )
-
         self.date_end.setDate(
             QDate.fromString(str(data["date_end"]), "yyyy-MM-dd")
         )
@@ -70,9 +93,11 @@ class EditReservationDialog(QDialog):
 
         ok = update_reservation(
             self.reservation_id,
-            date_start,
-            date_end,
-            status
+            self.client_box.currentData(),
+            self.book_box.currentData(),
+            self.date_start.date().toPyDate(),
+            self.date_end.date().toPyDate(),
+            self.status_box.currentText()
         )
 
         if ok:

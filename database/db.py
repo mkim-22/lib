@@ -248,6 +248,8 @@ def get_reservation_by_id(reservation_id):
             cursor.execute("""
                 SELECT
                     id,
+                    user_id,
+                    book_id,
                     date_start,
                     date_end,
                     status
@@ -279,21 +281,27 @@ def delete_reservation(reservation_id):
 # ---------------------------------------------------
 # РЕДАКТИРОВАНИЕ БРОНИ
 # ---------------------------------------------------
-def update_reservation(reservation_id, date_start, date_end, status):
+def update_reservation(reservation_id, user_id, book_id, date_start, date_end, status):
     db = get_database_connection()
     try:
         with db.cursor() as cursor:
             cursor.execute("""
                 UPDATE reservations
-                SET date_start = %s, date_end = %s, status = %s
+                SET
+                    user_id = %s,
+                    book_id = %s,
+                    date_start = %s,
+                    date_end = %s,
+                    status = %s
                 WHERE id = %s
-            """, (date_start, date_end, status, reservation_id))
+            """, (user_id, book_id, date_start, date_end, status, reservation_id))
             return True
     except Exception as e:
         print("Ошибка обновления:", e)
         return False
     finally:
         db.close()
+
 
 
 # =====================================================

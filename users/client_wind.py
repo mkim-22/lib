@@ -47,8 +47,10 @@ class ClientWindow(QMainWindow):
     def init_catalog_tab(self):
         layout = QVBoxLayout()
         self.catalog_table = QTableWidget()
-        self.catalog_table.setColumnCount(3)
-        self.catalog_table.setHorizontalHeaderLabels(["Название", "Автор", "Жанр"])
+        self.catalog_table.setColumnCount(4)
+        self.catalog_table.setHorizontalHeaderLabels(
+            ["Название", "Автор", "Жанр", "Доступно"]
+        )
 
         btn_reserve = QPushButton("Забронировать книгу")
         btn_reserve.clicked.connect(self.reserve_selected_book)
@@ -58,6 +60,8 @@ class ClientWindow(QMainWindow):
         self.catalog_tab.setLayout(layout)
         self.load_catalog_books()
 
+    from database.db import check_book_availability
+
     def load_catalog_books(self):
         books = get_all_books()
         self.catalog_table.setRowCount(len(books))
@@ -65,9 +69,13 @@ class ClientWindow(QMainWindow):
 
         for i, b in enumerate(books):
             self.book_ids.append(b["id"])
+
+            available = check_book_availability(b["id"])["available"]
+
             self.catalog_table.setItem(i, 0, QTableWidgetItem(b["title"]))
             self.catalog_table.setItem(i, 1, QTableWidgetItem(b["author"]))
             self.catalog_table.setItem(i, 2, QTableWidgetItem(b["genre"]))
+            self.catalog_table.setItem(i, 3, QTableWidgetItem(str(available)))
 
     def reserve_selected_book(self):
         row = self.catalog_table.currentRow()
@@ -87,6 +95,8 @@ class ClientWindow(QMainWindow):
         if add_reservation(self.user_id, book_id, start, end):
             QMessageBox.information(self, "Успех", "Книга забронирована")
             self.load_my_reservations()
+            self.load_catalog_books()
+
         else:
             QMessageBox.warning(self, "Ошибка", "Не удалось забронировать книгу")
 
